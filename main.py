@@ -1,25 +1,15 @@
 import dotenv
 import os
-from openai import OpenAI
 
-
-# load environment variables from .env file
 dotenv.load_dotenv()
-
 
 from pyannote.audio import Pipeline
 pipeline = Pipeline.from_pretrained(
     "pyannote/speaker-diarization-3.1",
     use_auth_token=os.getenv("AUTH_TOKEN"))
 
-# send pipeline to GPU (when available)
-import torch
-# pipeline.to(torch.device("cuda"))
-
-# apply pretrained pipeline
 diarization = pipeline("audio.mp3")
 
-# print the result
 for turn, _, speaker in diarization.itertracks(yield_label=True):
     # print(f"start={turn.start:.1f}s stop={turn.end:.1f}s speaker_{speaker}")
     print(f"speaker_{speaker}:", turn)
@@ -31,10 +21,7 @@ model = whisper.load_model("base")
 
 result = whisper.transcribe(model, audio, language="en")
 
-# Print the transcription result
-import json
-
-# Parse diarization results
+# Parsing results
 speaker_segments = []
 for turn, _, speaker in diarization.itertracks(yield_label=True):
     speaker_segments.append({
@@ -43,7 +30,6 @@ for turn, _, speaker in diarization.itertracks(yield_label=True):
         "speaker": speaker
     })
 
-# Parse transcription results
 transcriptions = []
 for segment in result['segments']:
     transcriptions.append({
@@ -52,7 +38,7 @@ for segment in result['segments']:
         "text": segment['text'].strip()
     })
 
-# Match transcriptions with speaker segments
+# Matching
 def get_speaker_for_segment(segment, speaker_segments):
     matched_speakers = []
     for sp_segment in speaker_segments:
